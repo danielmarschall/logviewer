@@ -1,0 +1,12 @@
+
+1. Import install/logviewer.sql into your MySQL database
+
+2. Add MySQL login information to db.inc.php
+
+3. Either edit auth.inc.php if you have a authentification/permission infrastructure, or create a simple .htaccess/.htpasswd protection.
+
+4. Add backend/insert_logs into crontab, letting it run every 10 minutes, e.g. following entry in /etc/crontab
+   */10    *      *   *   *      root          /.../logviewer/backend/insert_logs > /dev/null
+
+5. Modify config.inc.php
+

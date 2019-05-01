@@ -1,0 +1,25 @@
+body {
+	background-color:#333333;
+	color:#BBBBBB;
+	font-family:Arial;
+}
+.filter_hint {
+	font-size: small;
+}
+.selected_menu {
+	text-decoration:underline;
+}
+a {
+	color:#E0E000;
+}
+tr:hover {
+	background-color: rgba(90, 90, 90, 1);
+}
+thead {
+	font-weight:bold;
+	background-color:#555555;
+}
+#sort {
+	padding-top:20px;
+	padding-bottom:20px;
+}

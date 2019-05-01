@@ -1,0 +1,23 @@
+in loginbereich integrieren (und loggen wer das problem beseitigt hat)
+
+ein problem für immer ausblenden (anzahlsolved = 9999999999)
+
+erstes vorkommen in DB loggen
+
+filtern nach datum
+
+auto-solve items which are older than X years
+
+"show more" link at the bottom of the page, to load more
+also, when items are deleted, reload new items at the bottom of the page
+
+bei modul genau zeigen, von welchem logfile es reinkam!
+
+Idea: undo functionality
+
+wie kann man PHP stacktraces gescheit einfügen, sodass die zeilen zusammenhängend bleiben?
+
+implement PDO
+
+bug: when a logfile has multiple same lines, e.g. because an error happened 5 times in the same second, then the line is only logged once. but the count should be 5.
+
