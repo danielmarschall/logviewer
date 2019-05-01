@@ -34,8 +34,23 @@ if (isset($_REQUEST['solveall']) && logviewer_allow_solvemark()) {
 	die();
 }
 
-$filter = isset($_REQUEST['filter']) ? '%'.mysql_real_escape_string($filter).'%' : '';
-$filter_add = $filter ? "and text like '%".mysql_real_escape_string($filter)."%'" : '';
+$filter_add = '';
+if (isset($_REQUEST['filter'])) {
+	$ary = explode(' ', $_REQUEST['filter']);
+	foreach ($ary as $a) {
+		$a = trim($a);
+		if ($a == '') continue;
+
+		if (substr($a,0,1) == '-') {
+			$negate = "NOT ";
+			$a = substr($a, 1); // remove "-"
+		} else {
+			$negate = " ";
+		}
+
+		$filter_add .= " and text $negate like '".mysql_real_escape_string('%'.$a.'%')."' ";
+	}
+}
 
 $sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : '';
 if ($sort == '') $sort = 'anzahl';
@@ -64,6 +79,7 @@ if (isset($_REQUEST['filter'])) {
 	}
 }
 ?></p>
+<p><font size="-3">Search terms divided with whitespace. Prepend hyphen to exclude a search term. Only field "Message" will be searched.</font></p>
 </form>
 
 <?php

@@ -25,22 +25,50 @@ usort($phpfiles, create_function('$a,$b', 'return filemtime($a) - filemtime($b);
 
 $file_nr = 0;
 $file_max = count($files) + count($phpfiles);
+
+// Apache Log Files
+
 foreach ($files as $file) {
 	$file_nr++;
-	$lines = file($file);
-	$line_nr = 0;
+
+	if (time()-filemtime($file) > MAX_DAYS_LOGFILE * 3600) continue;
+
+	if (substr($file,-3,3) === '.gz') {
+		if (IGNORE_GZ) continue;
+		$cont = file_get_contents($file);
+		$cont = gzdecode($cont);
+		if ($cont === false) continue;
+		$lines = explode("\n", $cont);
+	} else {
+		$lines = file($file);
+	}
+
+	$line_no = 0;
 	$line_max = count($lines);
 	$logfile = removeLogrotateSuffix($file);
 	foreach ($lines as $line) {
-		$line_nr++;
-		#[Sun Aug 13 15:54:16.054530 2017] [fcgid:warn] [pid 28401] [client 104.236.113.44:52188] mod_fcgid: stderr: PHP Notice:  Undefined offset: 11 in /home/d
-		if (!preg_match('@^\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] (.*)$@ismU', $line, $m)) continue;
-		$time = $m[1];
-		$modul = $m[2];
-		$text = $m[5];
+		$line_no++;
+		$line = trim($line);
 
-		$time = trim(substr($time, 4, 6)).' '.substr($time, -4).' '.substr($time, 11, 8);
-		$time_mysql = date('Y-m-d H:i:s', strtotime($time));
+		if (preg_match('@^\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] (.*)$@ismU', $line, $m)) {
+			#[Sun Aug 13 15:54:16.054530 2017] [fcgid:warn] [pid 28401] [client 104.236.113.44:52188] mod_fcgid: stderr: PHP Notice:  Undefined offset: 11 in /home/d
+			$time = $m[1];
+			$modul = $m[2];
+			$text = $m[5];
+
+			$time = trim(substr($time, 4, 6)).' '.substr($time, -4).' '.substr($time, 11, 8);
+			$time_mysql = date('Y-m-d H:i:s', strtotime($time));
+		} else if (preg_match('@^(.+)\|(.+)\|(.+)\|(.+)$@ismU', $line, $m)) {
+			#  5.6 | /daten/homes/daniel-marschall/hosts/dracenmarx/public_html/wiki/vendor/oyejorge/less.php/lib:91            | ini              | Ini mbstring.internal_encoding is deprecated.
+			// A special implementation of PHP codefixer (showing the full path) . TODO: release
+			$time = filemtime($file);
+			$modul = 'php_codefixer';
+			$text = 'PHP Codefixer: ' . trim($m[4]) . ' in ' . trim($m[2]);
+
+			$time_mysql = date('Y-m-d H:i:s', $time);
+		} else {
+			continue;
+		}
 
 		$res = mysql_query("select * from vts_fehlerlog where modul = '".mysql_real_escape_string($modul)."' and logfile = '".mysql_real_escape_string($logfile)."' and text = '".mysql_real_escape_string($text)."';");
 		#echo mysql_error();
@@ -54,30 +82,47 @@ foreach ($files as $file) {
 			            "values ('".mysql_real_escape_string($modul)."', '".mysql_real_escape_string($text)."', 1, '".$time_mysql."', '".mysql_real_escape_string($logfile)."');");
 			#echo mysql_error();
 		}
-		echo "file $file_nr/$file_max (line $line_nr/$line_max)                     \r";
+		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
 	}
 }
+
+// PHP Log files
+
 foreach ($phpfiles as $file) {
 	$file_nr++;
 
-	$cont = file_get_contents($file);
+	if (time()-filemtime($file) > MAX_DAYS_LOGFILE * 3600) continue;
+
+	if (substr($file,-3,3) === '.gz') {
+		if (IGNORE_GZ) continue;
+		$cont = file_get_contents($file);
+		$cont = gzdecode($cont);
+		if ($cont === false) continue;
+	} else {
+		$cont = file_get_contents($file);
+	}
 	$cont = str_replace("\r", "", $cont);
 	$cont = str_replace("\n ", " ", $cont);
 	$lines = explode("\n", $cont);
 
-	$line_nr = 0;
+	$line_no = 0;
 	$line_max = count($lines);
 	$logfile = removeLogrotateSuffix($file);
 	foreach ($lines as $line) {
-		$line_nr++;
-		# [19-Aug-2017 23:00:54 europe/berlin] PHP Notice:  Undefined variable: ssl in /home/viathinksoft/public_html/serverinfo/index.php on line 364
-		if (!preg_match('@^\[(.*)\] ((.*)(\n ){0,1})$@ismU', $line, $m)) continue;
-		$time = $m[1];
-		$modul = '';
-		$text = $m[2];
+		$line_no++;
+		$line = trim($line);
 
-		$time = trim(substr($time, 0, 20));
-		$time_mysql = date('Y-m-d H:i:s', strtotime($time));
+		if (preg_match('@^\[(.*)\] ((.*)(\n ){0,1})$@ismU', $line, $m)) {
+			# [19-Aug-2017 23:00:54 europe/berlin] PHP Notice:  Undefined variable: ssl in /home/viathinksoft/public_html/serverinfo/index.php on line 364
+			$time = $m[1];
+			$modul = '';
+			$text = $m[2];
+
+			$time = trim(substr($time, 0, 20));
+			$time_mysql = date('Y-m-d H:i:s', strtotime($time));
+		} else {
+			continue;
+		}
 
 		$res = mysql_query("select * from vts_fehlerlog where modul = '".mysql_real_escape_string($modul)."' and logfile = '".mysql_real_escape_string($logfile)."' and text = '".mysql_real_escape_string($text)."';");
 		#echo mysql_error();
@@ -91,7 +136,7 @@ foreach ($phpfiles as $file) {
 			            "values ('".mysql_real_escape_string($modul)."', '".mysql_real_escape_string($text)."', 1, '".$time_mysql."', '".mysql_real_escape_string($logfile)."');");
 			#echo mysql_error();
 		}
-		echo "file $file_nr/$file_max (line $line_nr/$line_max)                     \r";
+		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
 	}
 }
 echo "\n";
