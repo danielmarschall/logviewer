@@ -34,19 +34,29 @@ if (file_exists(__DIR__."/../db_$hostname.inc.php")) {
 
 $files = array();
 foreach (apache_log_locations as $tpl) $files = array_merge($files, glob($tpl));
-usort($files, create_function('$a,$b', 'return filemtime($a) - filemtime($b);'));
+usort($files, function($a,$b) { return filemtime($a) - filemtime($b); });
 
 $phpfiles = array();
 foreach (php_log_locations as $tpl) $phpfiles = array_merge($phpfiles, glob($tpl));
-usort($phpfiles, create_function('$a,$b', 'return filemtime($a) - filemtime($b);'));
+usort($phpfiles, function($a,$b) { return filemtime($a) - filemtime($b); });
 
 $file_nr = 0;
 $file_max = count($files) + count($phpfiles);
+
+$TMP_FILE = '/tmp/insert_logs.cache';
+if (file_exists($TMP_FILE)) {
+	$cont = file_get_contents($TMP_FILE);
+	$cache = unserialize($cont);
+} else {
+	$cache = array();
+}
 
 // Apache Log Files
 
 foreach ($files as $file) {
 	$file_nr++;
+
+	if (isset($cache[$file]) && ($cache[$file] == md5_file($file))) continue;
 
 	if (time()-filemtime($file) > MAX_DAYS_LOGFILE * 3600) continue;
 
@@ -101,12 +111,16 @@ foreach ($files as $file) {
 		}
 		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
 	}
+
+	$cache[$file] = md5_file($file);
 }
 
 // PHP Log files
 
 foreach ($phpfiles as $file) {
 	$file_nr++;
+
+	if (isset($cache[$file]) && ($cache[$file] == md5_file($file))) continue;
 
 	if (time()-filemtime($file) > MAX_DAYS_LOGFILE * 3600) continue;
 
@@ -155,8 +169,12 @@ foreach ($phpfiles as $file) {
 		}
 		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
 	}
+
+	$cache[$file] = md5_file($file);
 }
 echo "\n";
+
+file_put_contents($TMP_FILE, serialize($cache));
 
 # ---
 

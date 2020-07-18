@@ -1,5 +1,5 @@
 
-1. Import install/logviewer.sql into your MySQL database
+1. Import logviewer.sql into your MySQL database
 
 2. Add MySQL login information to db.inc.php
 
