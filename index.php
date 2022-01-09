@@ -17,9 +17,13 @@
  * limitations under the License.
  */
 
-require_once __DIR__.'/config.inc.php';
-
 $hostname = trim(file_get_contents('/etc/hostname'));
+
+if (file_exists(__DIR__."/config_$hostname.inc.php")) {
+	require_once __DIR__."/config_$hostname.inc.php";
+} else {
+	require_once __DIR__.'/config.inc.php';
+}
 
 if (file_exists(__DIR__."/db_$hostname.inc.php")) {
 	require_once __DIR__."/db_$hostname.inc.php";

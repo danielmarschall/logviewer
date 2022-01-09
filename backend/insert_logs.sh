@@ -22,9 +22,13 @@ if (php_sapi_name() !== 'cli') {
 	die("Error: This script can only be called from command line.\n");
 }
 
-require_once __DIR__.'/../config.inc.php';
-
 $hostname = trim(file_get_contents('/etc/hostname'));
+
+if (file_exists(__DIR__."/config_$hostname.inc.php")) {
+	require_once __DIR__."/config_$hostname.inc.php";
+} else {
+	require_once __DIR__.'/config.inc.php';
+}
 
 if (file_exists(__DIR__."/../db_$hostname.inc.php")) {
 	require_once __DIR__."/../db_$hostname.inc.php";
@@ -143,6 +147,8 @@ foreach ($phpfiles as $file) {
 		$line_no++;
 		$line = trim($line);
 
+		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
+
 		if (preg_match('@^\[(.*)\] ((.*)(\n ){0,1})$@ismU', $line, $m)) {
 			# [19-Aug-2017 23:00:54 europe/berlin] PHP Notice:  Undefined variable: ssl in /home/viathinksoft/public_html/serverinfo/index.php on line 364
 			$time = $m[1];
@@ -167,7 +173,6 @@ foreach ($phpfiles as $file) {
 			            "values ('".mysql_real_escape_string($modul)."', '".mysql_real_escape_string($text)."', 1, '".$time_mysql."', '".mysql_real_escape_string($logfile)."');");
 			#echo mysql_error();
 		}
-		echo "file $file_nr/$file_max (line $line_no/$line_max)                     \r";
 	}
 
 	$cache[$file] = md5_file($file);

@@ -21,10 +21,9 @@ define('COUNT', 200);
 
 define('MAXYEARS', 1);
 
-#define('apache_log_locations', array('/home/*/log/error*.log*', '/home/*/hosts/*/log/error*.log*', '/daten/admin/_probleme/php_codefixer/all_php_files.out'));
-define('apache_log_locations', array('/daten/admin/_probleme/php_codefixer/all_php_files.out'));
+define('apache_log_locations', array('/home/*/log/error*.log*', '/home/*/hosts/*/log/error*.log*', '/var/log/apache2/error*.log*'));
 
-define('php_log_locations', array('/home/*/log/php_error*.log*', '/home/*/hosts/*/log/php_error*.log*'/* , '/var/log/php/error.log*' */));
+define('php_log_locations', array('/home/*/log/php_error*.log*', '/home/*/hosts/*/log/php_error*.log*', '/var/log/php/error.log*'));
 
 // 0 = No source is displayed
 // 1 = Columns "source" (=logfile) and "module" (module)
