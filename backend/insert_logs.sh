@@ -43,7 +43,7 @@ usort($phpfiles, function($a,$b) { return filemtime($a) - filemtime($b); });
 $file_nr = 0;
 $file_max = count($files) + count($phpfiles);
 
-$TMP_FILE = '/tmp/insert_logs.cache';
+$TMP_FILE = __DIR__ . '/.insertlogs.cache';
 if (file_exists($TMP_FILE)) {
 	$cont = file_get_contents($TMP_FILE);
 	$cache = unserialize($cont);

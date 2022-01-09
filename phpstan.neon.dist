@@ -3,6 +3,7 @@ parameters:
 	fileExtensions:
 		- php
 		- phps
+		- sh
 	paths:
 		- .
 	excludePaths:
@@ -12,6 +13,6 @@ parameters:
 	bootstrapFiles:
 		- config.inc.php
 	ignoreErrors:
-		#- '#is always (true|false)\.#'
+		- '#is always (true|false)\.#'
 		#- '#Call to function assert\(\) with false will always evaluate to false\.#'
 		#- '#with no typehint specified\.#'
