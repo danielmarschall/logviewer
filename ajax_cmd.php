@@ -62,11 +62,11 @@ if ($_REQUEST['cmd'] == 'solve') {
 		_err($e->getMessage());
 	}
 
-	$res = @mysql_query('select id from vts_fehlerlog where (id = '.$_REQUEST['id'].') '.$hardcoded_filters);
+	$res = @db_query('select id from vts_fehlerlog where (id = '.$_REQUEST['id'].') '.$hardcoded_filters);
 	if (!$res) _err('mysql query failed');
-	if (mysql_num_rows($res) == 0) _err('Row not found or no permission given.');
+	if (db_num_rows($res) == 0) _err('Row not found or no permission given.');
 
-	$res = @mysql_query('update vts_fehlerlog set anzahlsolved = anzahl where (id = '.$_REQUEST['id'].') '.$hardcoded_filters);
+	$res = @db_query('update vts_fehlerlog set anzahlsolved = anzahl where (id = '.$_REQUEST['id'].') '.$hardcoded_filters);
 	if (!$res) _err('mysql query failed');
 
 	$out = array();

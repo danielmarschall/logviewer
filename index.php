@@ -39,6 +39,10 @@ try {
 	die('<h1>ViaThinkSoft LogViewer - Error</h1><p>'.$e->getMessage().'</p>');
 }
 
+$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : '';
+if ($sort == '') $sort = 'anzahl';
+if (($sort != 'anzahl') && ($sort != 'letzter') && ($sort != 'random')) die('Sort falsch');
+
 # Please keep this code synchronized with ajax_cmd.php
 $add_filters = logviewer_additional_filter();
 $hardcoded_filters = empty($add_filters) ? '' : "and ($add_filters)";
@@ -46,7 +50,7 @@ $hardcoded_filters .= " and (letzter >= DATE_SUB(NOW(),INTERVAL ".MAXYEARS." YEA
 # Please keep this code synchronized with ajax_cmd.php
 
 if (isset($_REQUEST['solveall']) && logviewer_allow_solvemark()) {
-	mysql_query("update vts_fehlerlog set anzahlsolved = anzahl where text like '%".mysql_real_escape_string($_REQUEST['solveall'])."%'");
+	db_query("update vts_fehlerlog set anzahlsolved = anzahl where text like '%".db_real_escape_string($_REQUEST['solveall'])."%'");
 	header('location:?sort='.urlencode($sort)); // avoid F5
 	die();
 }
@@ -65,13 +69,9 @@ if (isset($_REQUEST['filter'])) {
 			$negate = " ";
 		}
 
-		$filter_add .= " and text $negate like '".mysql_real_escape_string('%'.$a.'%')."' ";
+		$filter_add .= " and text $negate like '".db_real_escape_string('%'.$a.'%')."' ";
 	}
 }
-
-$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : '';
-if ($sort == '') $sort = 'anzahl';
-if (($sort != 'anzahl') && ($sort != 'letzter') && ($sort != 'random')) die('Sort falsch');
 
 ?>
 <html>
@@ -133,9 +133,9 @@ if ($sort == 'random') {
 
 ?> (<span id="count"><?php
 
-$res = mysql_query("select count(*) as cnt from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters.";");
-$row = mysql_fetch_array($res);
-echo $row['cnt'];
+$res = db_query("select count(*) as cnt from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters.";");
+$row = db_fetch_object($res);
+echo $row->cnt;
 
 ?></span>)</div>
 
@@ -169,36 +169,36 @@ if (SOURCE_STYLE == 0) {
 $odd = true;
 
 if ($sort == 'letzter') {
-	$res = mysql_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by letzter desc, anzahl desc, id asc limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by letzter desc, anzahl desc, id asc limit ".COUNT);
 } else if ($sort == 'anzahl') {
-	$res = mysql_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by anzahl desc, letzter desc, id asc limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by anzahl desc, letzter desc, id asc limit ".COUNT);
 } else if ($sort == 'random') {
-	$res = mysql_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by RAND() limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by RAND() limit ".COUNT);
 }
-while ($row = mysql_fetch_array($res)) {
-	$text = htmlentities($row['text']);
+while ($row = db_fetch_object($res)) {
+	$text = htmlentities($row->text);
 	$text = preg_replace('@ ([^ ]{2,}) on line@ismU', ' <a href="?sort='.urlencode($sort).'&filter=\1">\1</a> on line', $text); // TODO: urlencode \1
 	$text = preg_replace('@(at|in) ([^ ]{2,}):(\d+)@ismU', '\1 <a href="?sort='.urlencode($sort).'&filter=\2">\2</a>:\3', $text); // TODO: urlencode \2
 
-	$anzahl = htmlentities($row['anzahl']);
-	if ($row['anzahlsolved'] != 0) $anzahl .= '<br>('.$row['anzahlsolved'].')';
+	$anzahl = htmlentities($row->anzahl);
+	if ($row->anzahlsolved != 0) $anzahl .= '<br>('.$row->anzahlsolved.')';
 
 	$class = $odd ? 'tr_odd' : 'tr_even';
 	$odd = !$odd;
 
-	echo '<tr id="line'.$row['id'].'" class="'.$class.'">';
+	echo '<tr id="line'.$row->id.'" class="'.$class.'">';
 	if (SOURCE_STYLE == 0) {
 		// nothing
 	} else if (SOURCE_STYLE == 1) {
-		echo '<td>'.htmlentities($row['logfile']).'</td>';
-		echo '<td>'.htmlentities($row['modul']).'</td>';
+		echo '<td>'.htmlentities($row->logfile).'</td>';
+		echo '<td>'.htmlentities($row->modul).'</td>';
 	} else {
-		$user = preg_match('@/home/(.+)/@sU', $row['logfile'], $m) ? $m[1] : ((strpos($row['logfile'], '/root/') === 0) ? 'root' : '');
+		$user = preg_match('@/home/(.+)/@sU', $row->logfile, $m) ? $m[1] : ((strpos($row->logfile, '/root/') === 0) ? 'root' : '');
 		echo '<td>'.htmlentities($user).'</td>';
 	}
-	if (logviewer_allow_solvemark()) echo '<td><a href="javascript:_solve('.$row['id'].')">Solved</a></td>';
+	if (logviewer_allow_solvemark()) echo '<td><a href="javascript:_solve('.$row->id.')">Solved</a></td>';
 	echo '<td>'.$anzahl.'</td>';
-	echo '<td>'.htmlentities($row['letzter']).'</td>';
+	echo '<td>'.htmlentities($row->letzter).'</td>';
 	echo '<td>'.$text.'</td>';
 	echo '</tr>';
 	flush();
