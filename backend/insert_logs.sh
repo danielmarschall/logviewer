@@ -3,7 +3,7 @@
 
 /*
  * ViaThinkSoft LogViewer
- * Copyright 2018-2019 Daniel Marschall, ViaThinkSoft
+ * Copyright 2018-2022 Daniel Marschall, ViaThinkSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ if (php_sapi_name() !== 'cli') {
 
 $hostname = trim(file_get_contents('/etc/hostname'));
 
-if (file_exists(__DIR__."/config_$hostname.inc.php")) {
-	require_once __DIR__."/config_$hostname.inc.php";
+if (file_exists(__DIR__."/../config_$hostname.inc.php")) {
+	require_once __DIR__."/../config_$hostname.inc.php";
 } else {
-	require_once __DIR__.'/config.inc.php';
+	require_once __DIR__.'/../config.inc.php';
 }
 
 if (file_exists(__DIR__."/../db_$hostname.inc.php")) {
