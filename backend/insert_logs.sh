@@ -82,7 +82,7 @@ foreach ($files as $file) {
 		$line = trim($line);
 
 		if (preg_match('@^\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] (.*)$@ismU', $line, $m)) {
-			#[Sun Aug 13 15:54:16.054530 2017] [fcgid:warn] [pid 28401] [client 104.236.113.44:52188] mod_fcgid: stderr: PHP Notice:  Undefined offset: 11 in /home/d
+			// [Sun Aug 13 15:54:16.054530 2017] [fcgid:warn] [pid 28401] [client 104.236.113.44:52188] mod_fcgid: stderr: PHP Notice:  Undefined offset: 11 in /home/d
 			$time = $m[1];
 			$modul = $m[2];
 			$text = $m[5];
@@ -90,7 +90,7 @@ foreach ($files as $file) {
 			$time = trim(substr($time, 4, 6)).' '.substr($time, -4).' '.substr($time, 11, 8);
 			$time_mysql = date('Y-m-d H:i:s', strtotime($time));
 		} else if (preg_match('@^(.+)\|(.+)\|(.+)\|(.+)$@ismU', $line, $m)) {
-			#  5.6 | /daten/homes/daniel-marschall/hosts/dracenmarx/public_html/wiki/vendor/oyejorge/less.php/lib:91            | ini              | Ini mbstring.internal_encoding is deprecated.
+			// 5.6 | /daten/homes/daniel-marschall/hosts/dracenmarx/public_html/wiki/vendor/oyejorge/less.php/lib:91            | ini              | Ini mbstring.internal_encoding is deprecated.
 			// A special implementation of PHP codefixer (showing the full path) . TODO: release
 			$time = filemtime($file);
 			$modul = 'php_codefixer';
@@ -180,6 +180,10 @@ foreach ($phpfiles as $file) {
 echo "\n";
 
 file_put_contents($TMP_FILE, serialize($cache));
+
+// Prune old logs
+
+mysql_query('delete from vts_fehlerlog where letzter < date_sub(now(),interval 3 year)');
 
 # ---
 
