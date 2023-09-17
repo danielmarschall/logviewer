@@ -3,7 +3,7 @@
 
 /*
  * ViaThinkSoft LogViewer
- * Copyright 2018-2022 Daniel Marschall, ViaThinkSoft
+ * Copyright 2018-2023 Daniel Marschall, ViaThinkSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,16 @@ foreach ($files as $file) {
 			continue;
 		}
 
+		if (strlen($modul) > 30) {
+			echo "Attention: Truncate modul: $modul\n";
+			$modul = substr($modul, 0, 512);
+		}
+
+		if (strlen($text) > 512) {
+			echo "Attention: Truncate text in file $file: $text\n";
+			$text = substr($text, 0, 512);
+		}
+
 		$res = mysql_query("select * from vts_fehlerlog where modul = '".mysql_real_escape_string($modul)."' and logfile = '".mysql_real_escape_string($logfile)."' and text = '".mysql_real_escape_string($text)."';");
 		#echo mysql_error();
 		if (mysql_num_rows($res) > 0) {
@@ -159,6 +169,25 @@ foreach ($phpfiles as $file) {
 			$time_mysql = date('Y-m-d H:i:s', strtotime($time));
 		} else {
 			continue;
+		}
+
+		if (strpos($text, '{"reqId":"') !== false) {
+			// For some reason, owncloud or nextcloud seems to write to php_error.log and not in data/nextcloud.log ?? But only sometimes ??
+			// TODO: Should we try to parse this JSON log message?
+
+			// [12-Sep-2023 15:01:24 UTC] {"reqId":"f2uD4QSS9xIjAAWgbeVb","level":3,"time":"2023-09-12T15:01:24+00:00","remoteAddr":"1.2.3.4","user":"--","app":"core","method":"GET","url":"/index.php/settings/admin/overview","message":"Permission denied","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36","version":"27.0.2.1","exception":{"Exception":"RedisException","Message":"Permission denied","Code":0,"Trace":[{"file":"/daten/homes/owncloud/public_html/lib/private/RedisFactory.php","line":137,"function":"pconnect","class":"Redis","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/RedisFactory.php","line":178,"function":"create","class":"OC\\RedisFactory","type":"->","args":["*** sensitive parameters replaced ***"]},{"file":"/daten/homes/owncloud/public_html/lib/private/Memcache/Redis.php","line":66,"function":"getInstance","class":"OC\\RedisFactory","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/Memcache/Redis.php","line":72,"function":"getCache","class":"OC\\Memcache\\Redis","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/App/InfoParser.php","line":58,"function":"get","class":"OC\\Memcache\\Redis","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/App/AppManager.php","line":732,"function":"parse","class":"OC\\App\\InfoParser","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/legacy/OC_App.php","line":434,"function":"getAppInfo","class":"OC\\App\\AppManager","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/private/AppFramework/App.php","line":71,"function":"getAppInfo","class":"OC_App","type":"::"},{"file":"/daten/homes/owncloud/public_html/lib/private/legacy/OC_App.php","line":155,"function":"buildAppNamespace","class":"OC\\AppFramework\\App","type":"::"},{"file":"/daten/homes/owncloud/public_html/lib/private/AppFramework/Bootstrap/Coordinator.php","line":119,"function":"registerAutoloading","class":"OC_App","type":"::"},{"file":"/daten/homes/owncloud/public_html/lib/private/AppFramework/Bootstrap/Coordinator.php","line":90,"function":"registerApps","class":"OC\\AppFramework\\Bootstrap\\Coordinator","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/base.php","line":703,"function":"runInitialRegistration","class":"OC\\AppFramework\\Bootstrap\\Coordinator","type":"->"},{"file":"/daten/homes/owncloud/public_html/lib/base.php","line":1180,"function":"init","class":"OC","type":"::"},{"file":"/daten/homes/owncloud/public_html/index.php","line":34,"args":["/daten/homes/owncloud/public_html/lib/base.php"],"function":"require_once"}],"File":"/daten/homes/owncloud/public_html/lib/private/RedisFactory.php","Line":137,"CustomMessage":"--"}}
+
+			continue;
+		}
+
+		if (strlen($modul) > 30) {
+			echo "Attention: Truncate modul: $modul\n";
+			$modul = substr($modul, 0, 512);
+		}
+
+		if (strlen($text) > 512) {
+			echo "Attention: Truncate text in file $file: $text\n";
+			$text = substr($text, 0, 512);
 		}
 
 		$res = mysql_query("select * from vts_fehlerlog where modul = '".mysql_real_escape_string($modul)."' and logfile = '".mysql_real_escape_string($logfile)."' and text = '".mysql_real_escape_string($text)."';");
