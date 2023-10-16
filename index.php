@@ -2,7 +2,7 @@
 
 /*
  * ViaThinkSoft LogViewer
- * Copyright 2018-2022 Daniel Marschall, ViaThinkSoft
+ * Copyright 2018-2023 Daniel Marschall, ViaThinkSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,15 +49,9 @@ if (($sort != 'anzahl') && ($sort != 'letzter') && ($sort != 'random')) die('Sor
 
 # Please keep this code synchronized with ajax_cmd.php
 $add_filters = logviewer_additional_filter();
-$hardcoded_filters = empty($add_filters) ? '' : "and ($add_filters)";
+$hardcoded_filters = empty($add_filters) ? '' : " and ($add_filters)";
 $hardcoded_filters .= " and (letzter >= DATE_SUB(NOW(),INTERVAL ".MAXYEARS." YEAR))";
 # Please keep this code synchronized with ajax_cmd.php
-
-if (isset($_REQUEST['solveall']) && logviewer_allow_solvemark()) {
-	db_query("update vts_fehlerlog set anzahlsolved = anzahl where text like '%".db_real_escape_string($_REQUEST['solveall'])."%'");
-	header('location:?sort='.urlencode($sort)); // avoid F5
-	die();
-}
 
 $filter_add = '';
 if (isset($_REQUEST['filter'])) {
@@ -75,6 +69,14 @@ if (isset($_REQUEST['filter'])) {
 
 		$filter_add .= " and text $negate like '".db_real_escape_string('%'.$a.'%')."' ";
 	}
+}
+
+$where = "(anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters;
+
+if (isset($_REQUEST['solveall']) && logviewer_allow_solvemark()) {
+	db_query("update vts_fehlerlog set anzahlsolved = anzahl where $where");
+	header('location:?sort='.urlencode($sort)); // avoid F5
+	die();
 }
 
 ?>
@@ -96,7 +98,7 @@ if (isset($_REQUEST['filter'])) {
 if (isset($_REQUEST['filter'])) {
 	echo ' <a href="?sort='.htmlentities($sort).'">Clear filter</a>';
 	if (logviewer_allow_solvemark()) {
-		echo ' | <a href="?sort='.htmlentities($sort).'&solveall='.urlencode($_REQUEST['filter']).'" onclick="return confirm(\'Are you sure?\');">Solve all</a>';
+		echo ' | <a href="?sort='.htmlentities($sort).'&solveall=1&filter='.urlencode($_REQUEST['filter']).'" onclick="return confirm(\'Are you sure?\');">Solve all</a>';
 	}
 }
 ?></p>
@@ -137,7 +139,7 @@ if ($sort == 'random') {
 
 ?> (<span id="count"><?php
 
-$res = db_query("select count(*) as cnt from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters.";");
+$res = db_query("select count(*) as cnt from vts_fehlerlog where $where;");
 $row = db_fetch_object($res);
 echo $row->cnt;
 
@@ -173,11 +175,11 @@ if (SOURCE_STYLE == 0) {
 $odd = true;
 
 if ($sort == 'letzter') {
-	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by letzter desc, anzahl desc, id asc limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where $where order by letzter desc, anzahl desc, id asc limit ".COUNT);
 } else if ($sort == 'anzahl') {
-	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by anzahl desc, letzter desc, id asc limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where $where order by anzahl desc, letzter desc, id asc limit ".COUNT);
 } else if ($sort == 'random') {
-	$res = db_query("select * from vts_fehlerlog where (anzahl > anzahlsolved) ".$filter_add." ".$hardcoded_filters." order by RAND() limit ".COUNT);
+	$res = db_query("select * from vts_fehlerlog where $where order by RAND() limit ".COUNT);
 }
 while ($row = db_fetch_object($res)) {
 	$text = htmlentities($row->text);
