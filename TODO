@@ -1,6 +1,6 @@
 in loginbereich integrieren (und loggen wer das problem beseitigt hat)
 
-ein problem für immer ausblenden (anzahlsolved = 9999999999)
+ein problem fÃ¼r immer ausblenden (anzahlsolved = 9999999999)
 
 erstes vorkommen in DB loggen
 
@@ -15,7 +15,7 @@ bei modul genau zeigen, von welchem logfile es reinkam!
 
 Idea: undo functionality
 
-wie kann man PHP stacktraces gescheit einfügen, sodass die zeilen zusammenhängend bleiben?
+wie kann man PHP stacktraces gescheit einfÃ¼gen, sodass die zeilen zusammenhÃ¤ngend bleiben?
 
 implement PDO
 
