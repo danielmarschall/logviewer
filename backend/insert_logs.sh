@@ -3,7 +3,7 @@
 
 /*
  * ViaThinkSoft LogViewer
- * Copyright 2018-2023 Daniel Marschall, ViaThinkSoft
+ * Copyright 2018-2024 Daniel Marschall, ViaThinkSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,6 +106,10 @@ foreach ($files as $file) {
 			$modul = substr($modul, 0, 512);
 		}
 
+		// Nicht druckbare Zeichen entf. Insbesondere wichtig wegen folgendem SQL Fehler, wenn z.B. jemand Steuerzeichen bei einem Angriff in die Logs einfließen lässt
+		// "Illegal mix of collations (latin1_swedish_ci,IMPLICIT) and (utf8mb4_general_ci,COERCIBLE) for operation '='"
+		$text = preg_replace('/[[:^print:]]/', '', $text);
+
 		if (strlen($text) > 512) {
 			echo "Attention: Truncate text in file $file: $text\n";
 			$text = substr($text, 0, 512);
@@ -184,6 +188,10 @@ foreach ($phpfiles as $file) {
 			echo "Attention: Truncate modul: $modul\n";
 			$modul = substr($modul, 0, 512);
 		}
+
+		// Nicht druckbare Zeichen entf. Insbesondere wichtig wegen folgendem SQL Fehler, wenn z.B. jemand Steuerzeichen bei einem Angriff in die Logs einfließen lässt
+		// "Illegal mix of collations (latin1_swedish_ci,IMPLICIT) and (utf8mb4_general_ci,COERCIBLE) for operation '='"
+		$text = preg_replace('/[[:^print:]]/', '', $text);
 
 		if (strlen($text) > 512) {
 			echo "Attention: Truncate text in file $file: $text\n";
